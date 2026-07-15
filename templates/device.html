@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device Pulse — Device</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b111c; --panel:#111a29; --panel-2:#0e1622; --line:#1e2c40;
+    --ink:#e8eef7; --muted:#7b8aa3; --faint:#4a5a72;
+    --ok:#35d0a5; --watch:#e7b84b; --risk:#f0864b; --crit:#f2555a;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:"Space Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;
+    --body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+    background-image:radial-gradient(1200px 600px at 80% -10%,#13233a55,transparent);}
+  a{color:inherit}
+  header{display:flex;align-items:center;gap:18px;padding:18px 28px;border-bottom:1px solid var(--line)}
+  .back{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:8px 13px;border-radius:7px}
+  .back:hover{border-color:var(--ok);color:var(--ok)}
+  .brand{font-family:var(--disp);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .wrap{padding:24px 28px 60px;max-width:1100px;margin:0 auto}
+  .loading,.err{font-family:var(--mono);font-size:14px;color:var(--muted);padding:60px 0;text-align:center}
+  .err{color:var(--crit)}
+
+  /* hero */
+  .hero{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+  .hero-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .hero h1{font-family:var(--disp);font-size:34px;font-weight:700;margin:0;letter-spacing:.01em}
+  .hero .model{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .status-tag{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid}
+  .t-ok{color:var(--ok);border-color:#1d4d42;background:#0f231e}
+  .t-watch{color:var(--watch);border-color:#4d431d;background:#231f0f}
+  .t-risk{color:var(--risk);border-color:#4d331d;background:#231a0f}
+  .t-crit{color:var(--crit);border-color:#4d1d22;background:#230f11}
+  .crit-pill{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 10px;border-radius:20px;border:1px solid var(--ci);color:var(--ci);background:#150f22}
+  .ci-cc{--ci:#c084fc} .ci-dg{--ci:#8b9bde} .ci-sc{--ci:#5b6a8a} .ci-rs{--ci:#4a5a72}
+  .hero-meta{display:flex;gap:26px;margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .hero-meta b{display:block;color:var(--ink);font-size:18px;font-weight:500;margin-top:3px}
+  .score-big{margin-left:auto;text-align:right}
+  .score-big .n{font-family:var(--disp);font-size:46px;font-weight:700;line-height:1}
+
+  h2.sec{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:26px 0 12px}
+
+  /* signals */
+  .signals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .signal-block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .signal-block .row{display:flex;justify-content:space-between;align-items:baseline}
+  .signal-block .name{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .signal-block .lab{font-family:var(--disp);font-size:18px;font-weight:500;color:var(--c)}
+  .signal-block .exp{font-size:13px;color:#aeb9cc;margin-top:6px;line-height:1.5}
+  .tier-0{--c:var(--ok)} .tier-1{--c:var(--watch)} .tier-2{--c:var(--risk)} .tier-3{--c:var(--crit)}
+
+  /* patient impact */
+  .impact-block{background:#140f1f;border:1px solid #2a1f3d;border-radius:12px;padding:16px 18px;margin-top:14px}
+  .impact-block .lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a78bfa;display:flex;justify-content:space-between}
+  .impact-block .note{color:var(--faint);font-size:10px}
+  .impact-block .worst{font-family:var(--disp);font-size:20px;font-weight:500;margin:6px 0 4px;color:var(--im)}
+  .impact-block .sub{font-size:13px;color:#aeb9cc;line-height:1.5}
+  .impact-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:12px;background:var(--line)}
+  .impact-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .impact-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  .action{margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2)}
+  .action .lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .action .txt{font-size:14px;line-height:1.5}
+  .reasons{margin:12px 0 0;padding:0;list-style:none}
+  .reasons li{font-size:13px;color:#aeb9cc;padding:7px 0 7px 16px;position:relative;line-height:1.5;border-top:1px solid var(--line)}
+  .reasons li:before{content:"›";position:absolute;left:0;color:var(--ok)}
+
+  /* recent events table */
+  .table-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .table-scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel-2);position:sticky;top:0}
+  tbody td{padding:11px 16px;border-bottom:1px solid #172234;font-family:var(--mono)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#0e1826}
+  .num{color:var(--faint)}
+  .code{color:var(--ink)}
+  .sev{display:inline-flex;align-items:center;gap:7px}
+  .sev .dot{width:8px;height:8px;border-radius:50%;background:var(--sc)}
+  .sev-1,.sev-2{--sc:var(--ok)} .sev-3{--sc:var(--watch)} .sev-4{--sc:var(--risk)} .sev-5{--sc:var(--crit)}
+  .imp{color:var(--ic);font-weight:500}
+  .empty-row td{color:var(--muted);text-align:center;padding:30px}
+
+  @media(max-width:820px){.signals{grid-template-columns:1fr}.score-big{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Fleet</a>
+  <span class="brand">Device Pulse</span>
+</header>
+<div class="wrap">
+  <div id="root"><div class="loading">Loading device…</div></div>
+</div>
+
+<script>
+const DEVICE_ID = {{ device_id|tojson }};
+const STATUS_CLASS={'Healthy':'ok','Watch':'watch','At Risk':'risk','Critical':'crit'};
+const CRIT_CLASS={'Critical Care':'cc','Diagnostic':'dg','Screening':'sc','Research':'rs'};
+const TIER={Normal:0,Elevated:1,High:2,Critical:3,Stable:0,Worsening:1,Escalating:3,
+  Distributed:0,Emerging:1,Concentrated:2,Dominant:3};
+const IMPACT_LEVELS=['None','Repeat Test','Delayed Result','Misdiagnosis Risk'];
+const IMPACT_RANK={'None':0,'Repeat Test':1,'Delayed Result':2,'Misdiagnosis Risk':3};
+const IMPACT_HEX=['#4a5a72','#8b9bde','#e7b84b','#c084fc'];
+
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function signalBlock(name,sig){
+  const t=TIER[sig.label]??0;
+  return `<div class="signal-block tier-${t}">
+    <div class="row"><span class="name">${name}</span><span class="lab">${sig.label}</span></div>
+    <div class="exp">${esc(sig.explanation||'')}</div></div>`;
+}
+function impactBlock(pi){
+  if(!pi) return '';
+  const counts=pi.counts||{}, total=pi.total||0, worst=pi.worst||'None', r=IMPACT_RANK[worst]??0;
+  const seg=IMPACT_LEVELS.map((l,i)=>{const n=counts[l]||0;return n&&total?`<span style="width:${(n/total*100).toFixed(1)}%;background:${IMPACT_HEX[i]}"></span>`:'';}).join('');
+  const leg=IMPACT_LEVELS.map((l,i)=>{const n=counts[l]||0;return n?`<span><i style="background:${IMPACT_HEX[i]}"></i>${l} ${n}</span>`:'';}).join('');
+  const sub=total?`${pi.elevated_count} of ${total} recent events carried clinical impact (Delayed Result or worse).`:'No recent events to assess.';
+  return `<div class="impact-block" style="--im:${IMPACT_HEX[r]}">
+    <div class="lab"><span>Patient impact · recent</span><span class="note">informational · not scored</span></div>
+    <div class="worst">${worst}</div><div class="sub">${sub}</div>
+    ${total?`<div class="impact-bar">${seg}</div><div class="impact-legend">${leg}</div>`:''}</div>`;
+}
+function eventsTable(events,windowDays){
+  if(!events.length) return `<div class="table-card"><table><tbody><tr class="empty-row"><td>No events in the recent ${windowDays}-day window.</td></tr></tbody></table></div>`;
+  const rows=events.map((e,i)=>{
+    const d=new Date(e.timestamp);
+    const when=isNaN(d)?esc(e.timestamp):d.toISOString().slice(0,16).replace('T',' ');
+    const sev=Math.round(e.severity);
+    const r=IMPACT_RANK[e.patient_impact]??0;
+    return `<tr>
+      <td class="num">${String(i+1).padStart(2,'0')}</td>
+      <td>${when}</td>
+      <td class="code">${esc(e.event_code)}</td>
+      <td><span class="sev sev-${sev}"><span class="dot"></span>${e.severity}</span></td>
+      <td class="imp" style="--ic:${IMPACT_HEX[r]}">${esc(e.patient_impact)}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>#</th><th>Time</th><th>Event code</th><th>Severity</th><th>Patient impact</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
+}
+
+function render(j){
+  const d=j.device;
+  const age=d.age_years==null?'unknown':d.age_years.toFixed(1)+' yrs';
+  const critPill=d.criticality?`<span class="crit-pill ci-${CRIT_CLASS[d.criticality]||'rs'}">${d.criticality}</span>`:'';
+  const eol=d.end_of_life_watch?'<span style="color:var(--watch)">EOL watch</span>':'—';
+  document.title=`Device Pulse — ${d.device_id}`;
+  document.getElementById('root').innerHTML=`
+    <div class="hero">
+      <div class="hero-top">
+        <h1>${d.device_id}</h1>
+        <span class="model">${d.model||'—'}</span>
+        ${critPill}
+        <span class="status-tag t-${STATUS_CLASS[d.status]}">${d.status}</span>
+        <div class="score-big"><div class="n" style="color:var(--${STATUS_CLASS[d.status]==='ok'?'ok':STATUS_CLASS[d.status]})">${d.risk_score.toFixed(0)}</div>
+          <div class="model">risk score</div></div>
+      </div>
+      <div class="hero-meta">
+        <div>AGE<b>${age}</b></div>
+        <div>RECENT / BASELINE<b>${d.recent_event_count} / ${d.baseline_event_count}</b></div>
+        <div>END OF LIFE<b>${eol}</b></div>
+        <div>AS OF<b>${j.as_of}</b></div>
+      </div>
+    </div>
+
+    <h2 class="sec">Signals</h2>
+    <div class="signals">
+      ${signalBlock('Frequency',d.frequency)}
+      ${signalBlock('Severity',d.severity)}
+      ${signalBlock('Pattern concentration',d.pattern)}
+    </div>
+    ${impactBlock(d.patient_impact)}
+
+    <div class="action"><div class="lab">Recommended action</div><div class="txt">${esc(d.recommended_action)}</div>
+      <ul class="reasons">${d.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>
+
+    <h2 class="sec">Recent events · last ${j.window_days} days (${j.recent_events.length})</h2>
+    ${eventsTable(j.recent_events,j.window_days)}`;
+}
+
+fetch(`/api/device/${encodeURIComponent(DEVICE_ID)}`)
+  .then(r=>r.json().then(j=>({ok:r.ok,j})))
+  .then(({ok,j})=>{
+    if(!ok){document.getElementById('root').innerHTML=`<div class="err">${esc(j.error||'Could not load device.')}</div>`;return;}
+    render(j);
+  })
+  .catch(()=>{document.getElementById('root').innerHTML='<div class="err">Network error loading device.</div>';});
+</script>
+</body>
+</html>
